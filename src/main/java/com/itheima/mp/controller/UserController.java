@@ -3,6 +3,7 @@ package com.itheima.mp.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.itheima.mp.domain.dto.UserFormDTO;
 import com.itheima.mp.domain.po.User;
+import com.itheima.mp.domain.vo.AddressVO;
 import com.itheima.mp.domain.vo.UserVO;
 import com.itheima.mp.query.UserQuery;
 import com.itheima.mp.service.IUserService;
@@ -51,23 +52,27 @@ public class UserController {
     @GetMapping("/{id}")
     @ApiOperation("根据id查询用户")
     public UserVO queryUserById(@PathVariable Long id) {
-        User user = userService.getById(id);
-        UserVO userVO = new UserVO();
-        BeanUtils.copyProperties(user,userVO);
-        return userVO;
+        // User user = userService.getById(id);
+        // UserVO userVO = new UserVO();
+        // BeanUtils.copyProperties(user,userVO);
+        // return userVO;
+        //使用静态工具
+        return userService.queryUserAndAddressesBy(id);
     }
 
     @GetMapping
     @ApiOperation("根据id批量查询用户")
     public List<UserVO> queryUserByIds(@RequestParam List<Long> ids) {
-        List<User> userList = userService.listByIds(ids);
-        List<UserVO> userVOList = new ArrayList<>();
-        for (User user : userList) {
-            UserVO userVO = new UserVO();
-            BeanUtils.copyProperties(user, userVO);
-            userVOList.add(userVO);
-        }
-        return userVOList;
+        // List<User> userList = userService.listByIds(ids);
+        // List<UserVO> userVOList = new ArrayList<>();
+        // for (User user : userList) {
+        //     UserVO userVO = new UserVO();
+        //     BeanUtils.copyProperties(user, userVO);
+        //     userVOList.add(userVO);
+        // }
+        // return userVOList;
+        //使用静态工具,代码改造
+        return userService.queryUserAndAddressByIds(ids);
     }
 
     @PutMapping("/user/{id}/deduction/{money}")
@@ -83,5 +88,11 @@ public class UserController {
         //把po拷贝到vo
         return BeanUtil.copyToList(users,UserVO.class);
 
+    }
+
+    @GetMapping("/address/{id}")
+    @ApiOperation("根据用户id查询收货地址")
+    public List<AddressVO> queryAddressById(@PathVariable Long id) {
+        return userService.queryAddressesById(id);
     }
 }

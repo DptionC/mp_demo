@@ -2,6 +2,8 @@ package com.itheima.mp.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.itheima.mp.domain.po.User;
+import com.itheima.mp.domain.vo.AddressVO;
+import com.itheima.mp.domain.vo.UserVO;
 import com.itheima.mp.query.UserQuery;
 
 import java.util.List;
@@ -25,4 +27,25 @@ public interface IUserService extends IService<User> {
      * @return
      */
     List<User> queryUsers(UserQuery userQuery);
+
+    /**
+     * 根据用户id查询，并获取相应的地址信息
+     * @param id
+     * @return
+     */
+    UserVO queryUserAndAddressesBy(Long id);
+
+    /**
+     * 根据用户id查询收获地址功能
+     * @param id
+     * @return
+     */
+    List<AddressVO> queryAddressesById(Long id);
+
+    /**
+     * 根据id批量查询用户信息,及返回地址信息
+     * @param ids
+     * @return
+     */
+    List<UserVO> queryUserAndAddressByIds(List<Long> ids);
 }
