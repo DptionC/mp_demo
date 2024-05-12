@@ -1,10 +1,12 @@
 package com.itheima.mp.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.itheima.mp.domain.dto.PageDTO;
 import com.itheima.mp.domain.dto.UserFormDTO;
 import com.itheima.mp.domain.po.User;
 import com.itheima.mp.domain.vo.AddressVO;
 import com.itheima.mp.domain.vo.UserVO;
+import com.itheima.mp.query.PageQuery;
 import com.itheima.mp.query.UserQuery;
 import com.itheima.mp.service.IUserService;
 import io.swagger.annotations.Api;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +89,7 @@ public class UserController {
     public List<UserVO> queryUsers(UserQuery userQuery) {
         List<User> users = userService.queryUsers(userQuery);
         //把po拷贝到vo
-        return BeanUtil.copyToList(users,UserVO.class);
+        return BeanUtil.copyToList(users, UserVO.class);
 
     }
 
@@ -94,5 +97,12 @@ public class UserController {
     @ApiOperation("根据用户id查询收货地址")
     public List<AddressVO> queryAddressById(@PathVariable Long id) {
         return userService.queryAddressesById(id);
+    }
+
+    @GetMapping("/page")
+    @ApiOperation("分页查询用户信息")
+    public PageDTO<UserVO> queryUsersPage(UserQuery query) {
+        log.info("用户信息：{}",query);
+        return userService.queryUsersPage(query);
     }
 }

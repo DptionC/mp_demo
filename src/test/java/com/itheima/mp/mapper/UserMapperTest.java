@@ -4,7 +4,11 @@ package com.itheima.mp.mapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.mp.domain.po.User;
+import com.itheima.mp.domain.po.UserInfo;
+import com.itheima.mp.service.IUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +22,9 @@ class UserMapperTest {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private IUserService userService;
+
     @Test
     void testInsert() {
         User user = new User();
@@ -26,7 +33,7 @@ class UserMapperTest {
         user.setPassword("123");
         user.setPhone("18688990011");
         user.setBalance(200);
-        user.setInfo("{\"age\": 24, \"intro\": \"英文老师\", \"gender\": \"female\"}");
+        user.setInfo(UserInfo.of(24, "英语老师", "female"));
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
         userMapper.insert(user);
@@ -102,5 +109,32 @@ class UserMapperTest {
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<User>().in(User::getId, ids);
         //2.自定义SQL方法调用
         userMapper.updateBalanceById(wrapper, amount);
+    }
+
+    @Test
+    void testPageQuery() {
+        //模拟前端传参,当前页,和每次查询2条
+        int pageNo = 1, pageSize = 2;
+        //1.准备分页条件
+        //1.1 分页条件
+        Page<User> page = Page.of(pageNo, pageSize);
+        //1.2 分页条件 默认是升序,true是降序,可以写多个
+        page.addOrder(new OrderItem("balance", true));
+        //如果balance相同,则按id排序
+        page.addOrder(new OrderItem("id", true));
+        //2.分页查询
+        Page<User> userPage = userService.page(page);
+
+        //3.解析
+        //3.1 获取分页总记录数
+        long total = userPage.getTotal();
+        System.out.println("total = " + total);
+        //3.2 获取总页数
+        long pages = userPage.getPages();
+        System.out.println("pages" + pages);
+        //3.3 获取记录数据列表
+        List<User> records = userPage.getRecords();
+        records.forEach(System.out::println);
+
     }
 }

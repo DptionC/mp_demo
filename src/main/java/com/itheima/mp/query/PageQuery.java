@@ -2,40 +2,56 @@ package com.itheima.mp.query;
 
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.itheima.mp.domain.po.User;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
 public class PageQuery {
-    private Integer pageNo;
-    private Integer pageSize;
+    @ApiModelProperty("页面")
+    private Integer pageNo = 1;
+    @ApiModelProperty("页面显示条数")
+    private Integer pageSize = 5;
+    @ApiModelProperty("排序字段")
     private String sortBy;
+    @ApiModelProperty("是否升序")
     private Boolean isAsc;
 
-    public <T>  Page<T> toMpPage(OrderItem ... orders){
-        // 1.分页条件
-        Page<T> p = Page.of(pageNo, pageSize);
-        // 2.排序条件
-        // 2.1.先看前端有没有传排序字段
+    /**
+     * mp的分页插件手写工具类
+     * @param orderItems 用户传递进来的多个排序参数
+     * @param <T> 泛型，后面根据用户实际使用用途自定义
+     * @return
+     */
+    public <T> Page<T> toMpPage(OrderItem... orderItems) {
+        //1. 构造分页条件
+        Page<T> page = Page.of(pageNo, pageSize);
+        //2. 设置排序字段
         if (sortBy != null) {
-            p.addOrder(new OrderItem(sortBy, isAsc));
-            return p;
+            //排序字段不为空
+            page.addOrder(new OrderItem(sortBy, isAsc));
+        }else {
+            //为空，则已id为升序
+            page.addOrder(orderItems);
         }
-        // 2.2.再看有没有手动指定排序字段
-        if(orders != null){
-            p.addOrder(orders);
-        }
-        return p;
+        //3.返回分页结果
+        return page;
     }
 
-    public <T> Page<T> toMpPage(String defaultSortBy, boolean isAsc){
-        return this.toMpPage(new OrderItem(defaultSortBy, isAsc));
+    //同时可以写成根据用户自己定义的排序方法
+    public <T> Page<T> toMpPageOrder(String orderByItem, boolean defalutAsc) {
+        //返回调用自己的结果
+        return toMpPage(new OrderItem(orderByItem, defalutAsc));
     }
 
-    public <T> Page<T> toMpPageDefaultSortByCreateTimeDesc() {
-        return toMpPage("create_time", false);
+    //设置默认由创建时间进行排序
+    public <T> Page<T> toMpPageOrderByCreateTime(OrderItem... orderItems) {
+        //返回调用自己的结果
+        return toMpPage(new OrderItem("create_time", false));
     }
-
-    public <T> Page<T> toMpPageDefaultSortByUpdateTimeDesc() {
-        return toMpPage("update_time", false);
+    //设置默认由更新时间进行排序
+    public <T> Page<T> toMpPageOrderByUpdateTime(OrderItem... orderItems) {
+        //返回调用自己的结果
+        return toMpPage(new OrderItem("update_time", false));
     }
 }

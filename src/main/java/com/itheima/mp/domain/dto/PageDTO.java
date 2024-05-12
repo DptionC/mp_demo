@@ -2,6 +2,7 @@ package com.itheima.mp.domain.dto;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageDTO<V> {
+    @ApiModelProperty("总条数")
     private Long total;
+    @ApiModelProperty("总页数")
     private Long pages;
+    @ApiModelProperty("集合")
     private List<V> list;
 
     /**
@@ -33,12 +37,12 @@ public class PageDTO<V> {
     /**
      * 将MybatisPlus分页结果转为 VO分页结果
      * @param p MybatisPlus的分页结果
-     * @param voClass 目标VO类型的字节码
+     * @param clazz 目标VO类型的字节码
      * @param <V> 目标VO类型
      * @param <P> 原始PO类型
      * @return VO的分页对象
      */
-    public static <V, P> PageDTO<V> of(Page<P> p, Class<V> voClass) {
+    public static <V, P> PageDTO<V> of(Page<P> p, Class<V> clazz) {
         // 1.非空校验
         List<P> records = p.getRecords();
         if (records == null || records.size() <= 0) {
@@ -46,7 +50,7 @@ public class PageDTO<V> {
             return empty(p);
         }
         // 2.数据转换
-        List<V> vos = BeanUtil.copyToList(records, voClass);
+        List<V> vos = BeanUtil.copyToList(records, clazz);
         // 3.封装返回
         return new PageDTO<>(p.getTotal(), p.getPages(), vos);
     }

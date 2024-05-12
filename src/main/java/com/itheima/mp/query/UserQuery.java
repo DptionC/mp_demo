@@ -3,10 +3,12 @@ package com.itheima.mp.query;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true) //重写生成子类的equals和hashCode方法，包含或者考虑父类的属性
 @ApiModel(description = "用户查询条件实体")
-public class UserQuery {
+public class UserQuery extends PageQuery {
     @ApiModelProperty("用户名关键字")
     private String name;
     @ApiModelProperty("用户状态：1-正常，2-冻结")

@@ -3,21 +3,23 @@ package com.itheima.mp.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.itheima.mp.domain.dto.PageDTO;
 import com.itheima.mp.domain.po.Address;
 import com.itheima.mp.domain.po.User;
 import com.itheima.mp.domain.vo.AddressVO;
 import com.itheima.mp.domain.vo.UserVO;
+import com.itheima.mp.enums.UserStatus;
 import com.itheima.mp.mapper.UserMapper;
+import com.itheima.mp.query.PageQuery;
 import com.itheima.mp.query.UserQuery;
 import com.itheima.mp.service.IUserService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +40,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         //1.查询用户
         User user = getById(id);
         //2.校验用户状态是否正常
-        if (user == null || user.getStatus() == 2) {
+        if (user == null || user.getStatus() == UserStatus.FROZEN) {
             throw new RuntimeException("用户状态异常");
         }
 
@@ -51,7 +53,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         int reminder = user.getBalance() - money;
         lambdaUpdate()
                 .set(User::getBalance, reminder) //set balance = balance - #{money},
-                .set(reminder == 0, User::getStatus, 2) // <if test = "reminder == 0"> status = 2</if>
+                .set(reminder == 0, User::getStatus, UserStatus.FROZEN) // <if test = "reminder == 0"> status = 2</if>
                 .set(User::getId, id) // where id = #{id}
                 .eq(User::getBalance,user.getBalance()) //乐观锁
                 .update(); //执行更新语句
@@ -162,7 +164,7 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
     public List<AddressVO> queryAddressesById(Long id) {
         //1.查询用户
         User user = getById(id);
-        if (user == null || user.getStatus().equals(2)) {
+        if (user == null || user.getStatus().equals(UserStatus.FROZEN)) {
             throw new RuntimeException("用户不存在或用户状态异常！");
         }
         //2.查询地址
@@ -173,4 +175,28 @@ public class IUserServiceImpl extends ServiceImpl<UserMapper, User> implements I
         List<AddressVO> addressVOS = BeanUtil.copyToList(addresses, AddressVO.class);
         return addressVOS;
     }
+
+    /**
+     * 分页查询
+     * @param query
+     * @return
+     */
+    @Override
+    public PageDTO<UserVO> queryUsersPage(UserQuery query) {
+        String name = query.getName();
+        Integer status = query.getStatus();
+
+        //1.直接调用在PageQuery类中的方法
+        Page<User> page = query.toMpPageOrderByUpdateTime();
+        //2.分页查询
+        Page<User> userPage = lambdaQuery()
+                .like(name != null, User::getUsername, name)
+                .eq(status != null, User::getStatus, status)
+                .page(page);
+
+        //3.返回封装结果
+       return PageDTO.of(userPage,UserVO.class);
+    }
+
+
 }
